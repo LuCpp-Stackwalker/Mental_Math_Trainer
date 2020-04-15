@@ -1,5 +1,6 @@
 package com.lsw.mentalmathtrainer
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.CountDownTimer
@@ -83,7 +84,7 @@ class LevelHandler
     private var lösung: Int = 0
     private var richtigerButton: Int = 0
     private var aufgabenCounter: Int = 0
-    private var richtigCounter: Int = 0
+    private var punkte: Int = 0
     private lateinit var timer: CountDownTimer
 
     constructor(antwortButtons: Array<Button>, textView: TextView, tts: TextToSpeech, timeBar: ProgressBar)
@@ -129,20 +130,19 @@ class LevelHandler
 
     fun startLevel(level: Int)
     {
-        richtigCounter = 0
+        punkte = 0
         aufgabenCounter = 0
         this.level = level
 
-        timeBar.max = (aufgaben[level].guteZeit * 4)
+        timeBar.max = (aufgaben[level].guteZeit * 9)
         timeBar.progress = 0
-        timer = object : CountDownTimer((aufgaben[level].guteZeit * 4).toLong(), 1) {
+        timer = object : CountDownTimer((aufgaben[level].guteZeit * 9).toLong(), 1) {
             override fun onTick(millisUntilFinished: Long) {
                 timeBar.progress = timeBar.max - millisUntilFinished.toInt()
             }
 
             override fun onFinish() {
                 handleInput(-1)
-
             }
         }
         generiereAufgabe()
@@ -159,6 +159,8 @@ class LevelHandler
         if(button == richtigerButton)
         {
             (antwortButtons[button].background as GradientDrawable).setColor(Color.GREEN)
+            punkte += 1000 - 100 * timeBar.progress / aufgaben[level].guteZeit
+            tvPunkte.text = punkte.toString()
             OnRichtigeAntwort()
         }
         else if(button != -1)
@@ -177,21 +179,42 @@ class LevelHandler
             OnZeitAbgelaufen()
         }
 
+        // Warte bis die Sprachausgabe fertig ist
+        // Setze dann die Knöpfe zurück und generiere eine neue Aufgabe
         var handler = Handler()
-        handler.postDelayed({
-            for(b in antwortButtons)
+        var runnable : Runnable = Runnable {  }
+        runnable = Runnable {
+            if(!tts.isSpeaking())
             {
-                (b.background as GradientDrawable).setColor(Color.BLUE)
-                b.isEnabled = true
+                for(b in antwortButtons)
+                {
+                    (b.background as GradientDrawable).setColor(Color.BLUE)
+                    b.isEnabled = true
+                }
+                if(aufgabenCounter < aufgaben[level].anzahlAufgaben)
+                {
+                    generiereAufgabe()
+                }
+                else
+                {
+                    var intent = Intent(appContext, ErgebnisActivity::class.java)//.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                    intent.putExtra("punkte", punkte)
+                    intent.putExtra("sterne", punkte / (aufgaben[level].anzahlAufgaben * 150))
+                    appContext.startActivity(intent)
+                }
             }
-            generiereAufgabe()
-        }, 2500)
+            else
+            {
+                handler.postDelayed(runnable, 100);
+            }
+        }
+        handler.postDelayed(runnable, 1000)
 
     }
 
     fun OnRichtigeAntwort()
     {
-        richtigCounter++;
         tts.speak("Gut geraten!", TextToSpeech.QUEUE_FLUSH, null)
     }
 

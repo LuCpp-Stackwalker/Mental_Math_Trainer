@@ -1,5 +1,6 @@
 package com.lsw.mentalmathtrainer
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -8,10 +9,14 @@ import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.util.*
+
+lateinit var tvPunkte : TextView
+lateinit var appContext : Context
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,6 +34,8 @@ class MainActivity : AppCompatActivity() {
                 tts.setLanguage(Locale.GERMANY)
             }
         })
+        tvPunkte = textViewPunkte
+        appContext = applicationContext
 
         var levelHandler = LevelHandler(arrayOf(antwort1, antwort2, antwort3, antwort4), aufgabe, tts, timeBar)
         levelHandler.startLevel(0)
