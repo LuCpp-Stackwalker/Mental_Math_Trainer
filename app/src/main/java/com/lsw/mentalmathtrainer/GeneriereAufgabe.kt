@@ -1,6 +1,7 @@
 package com.lsw.mentalmathtrainer
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.CountDownTimer
@@ -85,7 +86,7 @@ class LevelHandler
     private var richtigerButton: Int = 0
     private var aufgabenCounter: Int = 0
     private var punkte: Int = 0
-    private lateinit var timer: CountDownTimer
+    public lateinit var timer: CountDownTimer
 
     constructor(antwortButtons: Array<Button>, textView: TextView, tts: TextToSpeech, timeBar: ProgressBar)
     {
@@ -116,8 +117,8 @@ class LevelHandler
         var num2 = (op.min2 .. op.max2).random()
         lösung = op.op.apply(num1, num2)
         aufgabeTextView.text = num1.toString() + op.op.toString() + num2
-        richtigerButton = (0 .. antwortButtons.size-1).random()
-        for(i in (0 .. antwortButtons.size-1))
+        richtigerButton = (0 until antwortButtons.size).random()
+        for(i in (0 until  antwortButtons.size))
         {
             if(i == richtigerButton) antwortButtons[i].text = lösung.toString()
             else antwortButtons[i].text = generiereFalscheAntwort().toString()
@@ -139,6 +140,9 @@ class LevelHandler
         timer = object : CountDownTimer((aufgaben[level].guteZeit * 9).toLong(), 1) {
             override fun onTick(millisUntilFinished: Long) {
                 timeBar.progress = timeBar.max - millisUntilFinished.toInt()
+                var prozent = (timeBar.progress.toFloat()) / timeBar.max
+                var color = Color.rgb((255 * prozent).toInt(), (255 * (1 - prozent)).toInt(), 0);
+                timeBar.progressTintList = ColorStateList.valueOf(color)
             }
 
             override fun onFinish() {
@@ -200,7 +204,8 @@ class LevelHandler
                     var intent = Intent(appContext, ErgebnisActivity::class.java)//.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
                     intent.putExtra("punkte", punkte)
-                    intent.putExtra("sterne", punkte / (aufgaben[level].anzahlAufgaben * 150))
+                    intent.putExtra("sterne", punkte / (aufgaben[level].anzahlAufgaben * 150) - 1)
+                    intent.putExtra("level", level)
                     appContext.startActivity(intent)
                 }
             }

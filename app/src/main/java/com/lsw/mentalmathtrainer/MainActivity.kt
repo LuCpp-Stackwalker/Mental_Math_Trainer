@@ -23,6 +23,8 @@ class MainActivity : AppCompatActivity() {
     // tts = TextToSpeech
     lateinit var tts: TextToSpeech
 
+    lateinit var levelHandler : LevelHandler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -37,8 +39,8 @@ class MainActivity : AppCompatActivity() {
         tvPunkte = textViewPunkte
         appContext = applicationContext
 
-        var levelHandler = LevelHandler(arrayOf(antwort1, antwort2, antwort3, antwort4), aufgabe, tts, timeBar)
-        levelHandler.startLevel(0)
+        levelHandler = LevelHandler(arrayOf(antwort1, antwort2, antwort3, antwort4), aufgabe, tts, timeBar)
+        levelHandler.startLevel(intent.getIntExtra("level", 0))
 
         antwort1.setOnClickListener {
             levelHandler.handleInput(0)
@@ -55,6 +57,12 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        levelHandler.timer.cancel()
+        this.finish()
+    }
+/*
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -70,4 +78,6 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+ */
 }

@@ -1,18 +1,13 @@
 package com.lsw.mentalmathtrainer
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.ColorFilter
-import android.graphics.PorterDuff
-import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.DrawableCompat
 
 import kotlinx.android.synthetic.main.activity_ergebnis.*
 import kotlinx.android.synthetic.main.content_ergebnis.*
-import kotlinx.android.synthetic.main.content_main.*
 
 class ErgebnisActivity : AppCompatActivity() {
 
@@ -25,15 +20,39 @@ class ErgebnisActivity : AppCompatActivity() {
         ergebnisSterne.rating = sterne.toFloat();
         ergebnisSterne.isEnabled = false
 
+        var level = intent.getIntExtra("level", 0)
+
+        buttonBack.setOnClickListener{
+            onBackPressed()
+        }
+
         buttonRetry.setOnClickListener{
             val intent = Intent(applicationContext, MainActivity::class.java)
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+            intent.putExtra("level", level)
             startActivity(intent)
         }
 
+        // Teste, ob es überhaupt ein nächstes Level gibt
+        if(level < aufgaben.size - 1)
+        {
+            buttonNext.setOnClickListener{
+                val intent = Intent(applicationContext, MainActivity::class.java)
+                intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                intent.putExtra("level", level + 1)
+                startActivity(intent)
+            }
+        }
+        else
+        {
+            buttonNext.isEnabled = false
+            buttonNext.imageTintList = ColorStateList.valueOf(Color.GRAY)
+        }
     }
 
     override fun onBackPressed() {
-
+        super.onBackPressed()
+        this.finish()
     }
 
 }
