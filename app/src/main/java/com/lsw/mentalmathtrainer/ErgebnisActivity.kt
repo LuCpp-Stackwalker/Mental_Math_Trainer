@@ -1,9 +1,11 @@
 package com.lsw.mentalmathtrainer
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 
 import kotlinx.android.synthetic.main.activity_ergebnis.*
@@ -21,6 +23,19 @@ class ErgebnisActivity : AppCompatActivity() {
         ergebnisSterne.isEnabled = false
 
         var level = intent.getIntExtra("level", 0)
+
+        // Speichere Highscore
+        if(sterne > sterneHighscore[level])
+        {
+            sterneHighscore[level] = sterne
+            var preferences = getSharedPreferences("HIGHSCORE_PREF", Context.MODE_PRIVATE)
+            var editor = preferences.edit()
+            editor.remove("sterneHighscore_" + level)
+            editor.putInt("sterneHighscore_" + level, sterne)
+            var success = editor.commit()
+            Log.d("storeSharedPreferences", success.toString())
+        }
+
 
         buttonBack.setOnClickListener{
             onBackPressed()

@@ -11,6 +11,8 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 enum class Operator
 {
@@ -141,7 +143,7 @@ class LevelHandler
             override fun onTick(millisUntilFinished: Long) {
                 timeBar.progress = timeBar.max - millisUntilFinished.toInt()
                 var prozent = (timeBar.progress.toFloat()) / timeBar.max
-                var color = Color.rgb((255 * prozent).toInt(), (255 * (1 - prozent)).toInt(), 0);
+                var color = Color.rgb((255 * min(2.2f * prozent, 1.0f)).toInt(), (255 * min(2.2f * (1 - prozent), 1.0f)).toInt(), 0);
                 timeBar.progressTintList = ColorStateList.valueOf(color)
             }
 

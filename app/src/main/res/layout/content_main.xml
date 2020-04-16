@@ -78,16 +78,18 @@
         android:paddingEnd="0dp"
         android:scrollbarSize="12dp"
         app:layout_constraintBottom_toTopOf="@+id/aufgabe"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPunkte"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/textViewPunkte"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Punkte"
+        android:text="0"
+        android:textSize="24sp"
         app:layout_constraintBottom_toTopOf="@+id/timeBar"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
