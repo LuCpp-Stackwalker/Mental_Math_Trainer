@@ -37,8 +37,8 @@ enum class Operator
         {
             Plus -> return "+"
             Minus -> return "-"
-            Mal -> return "*"
-            Geteilt -> return "/"
+            Mal -> return "\u22C5"
+            Geteilt -> return "\u00F7"
             Modulo -> return "mod"
             Hoch -> return "^"
         }
@@ -137,9 +137,9 @@ class LevelHandler
         aufgabenCounter = 0
         this.level = level
 
-        timeBar.max = (aufgaben[level].guteZeit * 9)
+        timeBar.max = (aufgaben[level].guteZeit * 5)
         timeBar.progress = 0
-        timer = object : CountDownTimer((aufgaben[level].guteZeit * 9).toLong(), 1) {
+        timer = object : CountDownTimer((aufgaben[level].guteZeit * 5).toLong(), 1) {
             override fun onTick(millisUntilFinished: Long) {
                 timeBar.progress = timeBar.max - millisUntilFinished.toInt()
                 var prozent = (timeBar.progress.toFloat()) / timeBar.max

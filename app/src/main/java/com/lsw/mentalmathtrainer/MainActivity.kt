@@ -1,19 +1,28 @@
 package com.lsw.mentalmathtrainer
 
 import android.content.Context
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.os.Handler
 import android.speech.tts.TextToSpeech
+import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
 import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.util.*
+import kotlin.math.log10
+import kotlin.math.max
+import kotlin.math.min
 
 lateinit var tvPunkte : TextView
 lateinit var appContext : Context
@@ -23,7 +32,15 @@ class MainActivity : AppCompatActivity() {
     // tts = TextToSpeech
     lateinit var tts: TextToSpeech
 
-    lateinit var levelHandler : LevelHandler
+    //lateinit var levelHandler : LevelHandler
+
+    private var level: Int = 0
+    private var lösung: Int = 0
+    private var richtigerButton: Int = 0
+    private var aufgabenCounter: Int = 0
+    private var punkte: Int = 0
+    private lateinit var timer: CountDownTimer
+    private lateinit var antwortButtons : Array<Button>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,29 +56,201 @@ class MainActivity : AppCompatActivity() {
         tvPunkte = textViewPunkte
         appContext = applicationContext
 
-        levelHandler = LevelHandler(arrayOf(antwort1, antwort2, antwort3, antwort4), aufgabe, tts, timeBar)
-        levelHandler.startLevel(intent.getIntExtra("level", 0))
+        antwortButtons = arrayOf(antwort1, antwort2, antwort3, antwort4)
+        level = intent.getIntExtra("level", 0)
+        startLevel(level)
 
         antwort1.setOnClickListener {
-            levelHandler.handleInput(0)
+            handleInput(0)
         }
         antwort2.setOnClickListener {
-            levelHandler.handleInput(1)
+            handleInput(1)
         }
         antwort3.setOnClickListener {
-            levelHandler.handleInput(2)
+            handleInput(2)
         }
         antwort4.setOnClickListener {
-            levelHandler.handleInput(3)
+            handleInput(3)
         }
 
     }
 
     override fun onBackPressed() {
         super.onBackPressed()
-        levelHandler.timer.cancel()
+        timer.cancel()
         this.finish()
     }
+
+    // Eigentliche Logik
+
+    fun startLevel(level: Int)
+    {
+        punkte = 0
+        aufgabenCounter = 0
+        this.level = level
+
+        timeBar.max = (aufgaben[level].guteZeit * 5)
+        timeBar.progress = 0
+        timer = object : CountDownTimer((aufgaben[level].guteZeit * 5).toLong(), 1) {
+            override fun onTick(millisUntilFinished: Long) {
+                timeBar.progress = timeBar.max - millisUntilFinished.toInt()
+                var prozent = (timeBar.progress.toFloat()) / timeBar.max
+                var color = Color.rgb((255 * min(2.2f * prozent, 1.0f)).toInt(), (255 * min(2.2f * (1 - prozent), 1.0f)).toInt(), 0);
+                timeBar.progressTintList = ColorStateList.valueOf(color)
+            }
+
+            override fun onFinish() {
+                handleInput(-1)
+            }
+        }
+        generiereAufgabe()
+    }
+
+    private fun generiereAufgabe() {
+        var op = aufgaben[level].cfg.random()
+        var num1 : Int
+        var num2 : Int
+        if(op.op == Operator.Geteilt)
+        {
+            // Bei geteilt sind Quotient und Divisor gegeben
+            // Der Dividend wird dann daraus berechnet
+            num2 = (op.min2 .. op.max2).random()
+            lösung = (op.min1 .. op.max1).random()
+            num1 = num2 * lösung
+        }
+        else
+        {
+            num1 = (op.min1 .. op.max1).random()
+            num2 = (op.min2 .. op.max2).random()
+            lösung = op.op.apply(num1, num2)
+        }
+        aufgabe.text = num1.toString() + op.op.toString() + num2
+        richtigerButton = (0 until antwortButtons.size).random()
+        for(i in (0 until  antwortButtons.size))
+        {
+            if(i == richtigerButton) antwortButtons[i].text = lösung.toString()
+            else
+            {
+                var falscheAntwort : String
+                // Sorge dafür, das keine Antworten doppelt sind
+                do
+                {
+                    falscheAntwort = generiereFalscheAntwort().toString()
+                    var bereitsVorhanden = false
+                    for(j in 0 until i)
+                    {
+                        if(falscheAntwort == antwortButtons[j].text)
+                        {
+                            bereitsVorhanden = true
+                        }
+                    }
+                } while (bereitsVorhanden)
+                antwortButtons[i].text = falscheAntwort
+            }
+        }
+
+        aufgabenCounter++
+        timeBar.progress = 0
+        timer.start()
+    }
+
+    private fun generiereFalscheAntwort() : Int
+    {
+        var maxAbweichung = max(min(lösung / 2, 50), 2)
+        var variante = (0 .. 3).random()
+        // Falls max Abweichung < 10 sind Varianten 0 und 1 sinnlos.
+        // Setze dann das zweite Bit auf 1 -> Zahl entweder 2 oder 3
+        if(maxAbweichung < 10) variante = variante or 2
+        when(variante)
+        {
+            0 -> return lösung + 10 * (1 .. maxAbweichung / 10).random()
+            1 -> return lösung - 10 * (1 .. maxAbweichung / 10).random()
+            2 -> return lösung + (1 .. maxAbweichung).random()
+            3 -> return lösung - (1 .. maxAbweichung).random()
+        }
+        // ERROR
+        return 0
+    }
+
+    fun handleInput(button: Int)
+    {
+        for(b in antwortButtons)
+        {
+            b.isEnabled = false
+        }
+        timer.cancel()
+
+        if(button == richtigerButton)
+        {
+            (antwortButtons[button].background as GradientDrawable).setColor(Color.GREEN)
+            punkte += 1000 - 100 * timeBar.progress / aufgaben[level].guteZeit
+            tvPunkte.text = punkte.toString()
+            tts.speak(sprücheRichtig.random(), TextToSpeech.QUEUE_FLUSH, null)
+        }
+        else if(button != -1)
+        {
+            (antwortButtons[button].background as GradientDrawable).setColor(Color.RED)
+            (antwortButtons[richtigerButton].background as GradientDrawable).setColor(Color.GREEN)
+            tts.speak(sprücheFalsch.random(), TextToSpeech.QUEUE_FLUSH, null)
+        }
+        else
+        {
+            for(b in antwortButtons)
+            {
+                (b.background as GradientDrawable).setColor(Color.RED)
+            }
+            (antwortButtons[richtigerButton].background as GradientDrawable).setColor(Color.GREEN)
+            tts.speak(sprücheZeitAbgelaufen.random(), TextToSpeech.QUEUE_FLUSH, null)
+        }
+
+        // Warte bis die Sprachausgabe fertig ist
+        // Setze dann die Knöpfe zurück und generiere eine neue Aufgabe
+        var handler = Handler()
+        var runnable : Runnable = Runnable {  }
+        runnable = Runnable {
+            if(!tts.isSpeaking())
+            {
+                for(b in antwortButtons)
+                {
+                    (b.background as GradientDrawable).setColor(Color.BLUE)
+                    b.isEnabled = true
+                }
+                if(aufgabenCounter < aufgaben[level].anzahlAufgaben)
+                {
+                    generiereAufgabe()
+                }
+                else
+                {
+                    var intent = Intent(appContext, ErgebnisActivity::class.java)//.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                    intent.putExtra("punkte", punkte)
+                    var sterne = max(punkte / (aufgaben[level].anzahlAufgaben * 150) - 1, 0)
+                    intent.putExtra("sterne", sterne)
+                    intent.putExtra("level", level)
+                    appContext.startActivity(intent)
+                }
+            }
+            else
+            {
+                handler.postDelayed(runnable, 100);
+            }
+        }
+        handler.postDelayed(runnable, 1000)
+
+    }
+
+    private val sprücheRichtig : Array<String> = arrayOf("Gut geraten", "Sehr gut", "Ich bin überrascht von dir",
+    "Das war aber auch einfach", "Wenn du das nicht geschafft hättest", "Gut gemacht", "Richtig", "Du bist besser als erwartet",
+    "Nicht schlecht", "Das kannst du sehr gut", "Das schafft ja jeder", "Schön", "Glück gehabt")
+
+    private val sprücheFalsch : Array<String> = arrayOf("Dieses Mal hast du falsch geraten", "So wird das nie was",
+    "Strenge dich mehr an", "Falsch!", "Nicht gerade gut", "0 Punkte", "Das muss besser werden",
+    "Denken! nicht raten!", "Pech gehabt", "Dieses Mal hattest du kein Glück")
+
+    private val sprücheZeitAbgelaufen : Array<String> = arrayOf("Du, bist, zu, langsam", "Bist du eingeschlafen?",
+    "Du musst schneller werden", "zu langsam", "Zeit abgelaufen", "Bist du sonst auch so langsam", "Beeil dich",
+    "Nicht trödeln", "Kannst du dich nicht für ein paar Sekunden konzentrieren?")
+
 /*
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
