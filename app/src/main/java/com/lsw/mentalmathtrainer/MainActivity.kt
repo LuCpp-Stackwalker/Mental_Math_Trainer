@@ -83,6 +83,7 @@ class MainActivity : AppCompatActivity() {
 
     // Eigentliche Logik
 
+    // Startet ein neues Level und initialisiert dieses
     fun startLevel(level: Int)
     {
         punkte = 0
@@ -114,14 +115,14 @@ class MainActivity : AppCompatActivity() {
         {
             // Bei geteilt sind Quotient und Divisor gegeben
             // Der Dividend wird dann daraus berechnet
-            num2 = (op.min2 .. op.max2).random()
-            lösung = (op.min1 .. op.max1).random()
+            num2 = op.range2.random()
+            lösung = op.range1.random()
             num1 = num2 * lösung
         }
         else
         {
-            num1 = (op.min1 .. op.max1).random()
-            num2 = (op.min2 .. op.max2).random()
+            num1 = op.range1.random()
+            num2 = op.range2.random()
             lösung = op.op.apply(num1, num2)
         }
         aufgabe.text = num1.toString() + op.op.toString() + num2
@@ -269,4 +270,61 @@ class MainActivity : AppCompatActivity() {
     }
 
  */
+}
+
+enum class Operator
+{
+    Plus, Minus, Mal, Geteilt, Modulo, Hoch;
+
+    fun apply(a : Int, b : Int) : Int
+    {
+        when(this)
+        {
+            Plus -> return a+b
+            Minus -> return a-b
+            Mal -> return a*b
+            Geteilt -> return a/b
+            Modulo -> return a%b
+            Hoch -> return Math.pow(a.toDouble(), b.toDouble()).toInt()
+        }
+    }
+
+    override fun toString() : String
+    {
+        when(this)
+        {
+            Plus -> return "+"
+            Minus -> return "-"
+            Mal -> return "\u22C5"
+            Geteilt -> return "\u00F7"
+            Modulo -> return "mod"
+            Hoch -> return "^"
+        }
+    }
+}
+
+class OperatorCfg
+{
+    var op: Operator = Operator.Plus
+    var range1 : IntRange
+    var range2 : IntRange
+    constructor(op : Operator, range1 : IntRange, range2 : IntRange)
+    {
+        this.op = op
+        this.range1 = range1
+        this.range2 = range2
+    }
+}
+
+class Level
+{
+    val cfg: Array<OperatorCfg>
+    val anzahlAufgaben: Int
+    val guteZeit: Int
+    constructor(cfg: Array<OperatorCfg>, anzahlAufgaben: Int, guteZeit: Int)
+    {
+        this.cfg = cfg
+        this.anzahlAufgaben = anzahlAufgaben
+        this.guteZeit = guteZeit
+    }
 }
