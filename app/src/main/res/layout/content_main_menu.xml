@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".MainMenuActivity"
+    tools:showIn="@layout/activity_main_menu">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/buttonKlassischerModus"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:text="@string/name_klassischer_modus"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/buttonQuadratischeGleichungen"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:text="@string/name_quadratische_gleichungen"
+            android:textSize="24sp"/>
+
+    </LinearLayout>
+
+
+</androidx.core.widget.NestedScrollView>
