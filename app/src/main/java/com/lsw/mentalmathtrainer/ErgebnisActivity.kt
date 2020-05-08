@@ -2,6 +2,7 @@ package com.lsw.mentalmathtrainer
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
@@ -21,13 +22,11 @@ class ErgebnisActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ergebnis)
         setSupportActionBar(toolbar)
-        textViewPunkteErgebnis.text = intent.getIntExtra("punkte", 0).toString() + " Punkte!"
+
         var sterne = intent.getIntExtra("sterne", 0)
         ergebnisSterne.rating = sterne.toFloat();
         ergebnisSterne.isEnabled = false
-
         var level = intent.getIntExtra("level", 0)
-
         tts = TextToSpeech(applicationContext, TextToSpeech.OnInitListener { status->
             if(status != TextToSpeech.ERROR)
             {
@@ -36,11 +35,32 @@ class ErgebnisActivity : AppCompatActivity() {
             }
         })
 
+        var modus = intent.getStringExtra("modus")
+        var preferences : SharedPreferences
+        var modusKlasse : Class<out Any>
+        if(modus == "klassisch")
+        {
+            preferences = getSharedPreferences("HIGHSCORE_KLASSISCH", Context.MODE_PRIVATE)
+            modusKlasse = MainActivity::class.java
+        }
+        else if(modus == "gleichung")
+        {
+            preferences = getSharedPreferences("HIGHSCORE_GLEICHUNG", Context.MODE_PRIVATE)
+            modusKlasse = QuadratischeGleichungActivity::class.java
+        }
+        else
+        {
+            return
+        }
+
+        if(modus == "klassisch")
+            textViewPunkteErgebnis.text = intent.getIntExtra("punkte", 0).toString() + " Punkte!"
+        else if(modus == "gleichung")
+            textViewPunkteErgebnis.text = ""
         // Speichere Highscore
-        if(sterne > sterneHighscore[level])
+        if(sterne > preferences.getInt("sterneHighscore_" + level, 0))
         {
             sterneHighscore[level] = sterne
-            var preferences = getSharedPreferences("HIGHSCORE_PREF", Context.MODE_PRIVATE)
             var editor = preferences.edit()
             editor.remove("sterneHighscore_" + level)
             editor.putInt("sterneHighscore_" + level, sterne)
@@ -54,17 +74,17 @@ class ErgebnisActivity : AppCompatActivity() {
         }
 
         buttonRetry.setOnClickListener{
-            val intent = Intent(applicationContext, MainActivity::class.java)
+            val intent = Intent(applicationContext, modusKlasse)
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
             intent.putExtra("level", level)
             startActivity(intent)
         }
 
         // Teste, ob es überhaupt ein nächstes Level gibt
-        if(level < aufgaben.size - 1)
+        if(level < levelKlassisch.size - 1)
         {
             buttonNext.setOnClickListener{
-                val intent = Intent(applicationContext, MainActivity::class.java)
+                val intent = Intent(applicationContext, modusKlasse)
                 intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
                 intent.putExtra("level", level + 1)
                 startActivity(intent)

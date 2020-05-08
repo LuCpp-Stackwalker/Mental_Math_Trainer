@@ -19,11 +19,13 @@ class MainMenuActivity : AppCompatActivity() {
 
         buttonKlassischerModus.setOnClickListener {
             var intent = Intent(applicationContext, LevelAuswahlActivity::class.java)
+            intent.putExtra("modus", "klassisch")
             startActivity(intent)
         }
 
         buttonQuadratischeGleichungen.setOnClickListener {
-            var intent = Intent(applicationContext, QuadratischeGleichungActivity::class.java)
+            var intent = Intent(applicationContext, LevelAuswahlActivity::class.java)
+            intent.putExtra("modus", "gleichung")
             startActivity(intent)
         }
     }

@@ -9,23 +9,15 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.speech.tts.TextToSpeech
-import android.util.Log
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.util.*
-import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
-
-lateinit var tvPunkte : TextView
-lateinit var appContext : Context
 
 class MainActivity : AppCompatActivity() {
 
@@ -53,8 +45,6 @@ class MainActivity : AppCompatActivity() {
                 tts.setLanguage(Locale.GERMANY)
             }
         })
-        tvPunkte = textViewPunkte
-        appContext = applicationContext
 
         antwortButtons = arrayOf(antwort1, antwort2, antwort3, antwort4)
         level = intent.getIntExtra("level", 0)
@@ -90,9 +80,9 @@ class MainActivity : AppCompatActivity() {
         aufgabenCounter = 0
         this.level = level
 
-        timeBar.max = (aufgaben[level].guteZeit * 5)
+        timeBar.max = (levelKlassisch[level].guteZeit * 5)
         timeBar.progress = 0
-        timer = object : CountDownTimer((aufgaben[level].guteZeit * 5).toLong(), 1) {
+        timer = object : CountDownTimer((levelKlassisch[level].guteZeit * 5).toLong(), 1) {
             override fun onTick(millisUntilFinished: Long) {
                 timeBar.progress = timeBar.max - millisUntilFinished.toInt()
                 var prozent = (timeBar.progress.toFloat()) / timeBar.max
@@ -108,7 +98,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun generiereAufgabe() {
-        var op = aufgaben[level].cfg.random()
+        var op = levelKlassisch[level].cfg.random()
         var num1 : Int
         var num2 : Int
         if(op.op == Operator.Geteilt)
@@ -184,8 +174,8 @@ class MainActivity : AppCompatActivity() {
         if(button == richtigerButton)
         {
             (antwortButtons[button].background as GradientDrawable).setColor(Color.GREEN)
-            punkte += 1000 - 100 * timeBar.progress / aufgaben[level].guteZeit
-            tvPunkte.text = punkte.toString()
+            punkte += 1000 - 100 * timeBar.progress / levelKlassisch[level].guteZeit
+            textViewPunkte.text = punkte.toString()
             tts.speak(sprücheRichtig.random(), TextToSpeech.QUEUE_FLUSH, null)
         }
         else if(button != -1)
@@ -216,19 +206,20 @@ class MainActivity : AppCompatActivity() {
                     (b.background as GradientDrawable).setColor(Color.BLUE)
                     b.isEnabled = true
                 }
-                if(aufgabenCounter < aufgaben[level].anzahlAufgaben)
+                if(aufgabenCounter < levelKlassisch[level].anzahlAufgaben)
                 {
                     generiereAufgabe()
                 }
                 else
                 {
-                    var intent = Intent(appContext, ErgebnisActivity::class.java)//.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                    var intent = Intent(applicationContext, ErgebnisActivity::class.java)//.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                    intent.putExtra("modus", "klassisch")
                     intent.putExtra("punkte", punkte)
-                    var sterne = max(punkte / (aufgaben[level].anzahlAufgaben * 150) - 1, 0)
+                    var sterne = max(punkte / (levelKlassisch[level].anzahlAufgaben * 150) - 1, 0)
                     intent.putExtra("sterne", sterne)
                     intent.putExtra("level", level)
-                    appContext.startActivity(intent)
+                    applicationContext.startActivity(intent)
                 }
             }
             else
@@ -316,7 +307,7 @@ class OperatorCfg
     }
 }
 
-class Level
+class LevelKlassisch
 {
     val cfg: Array<OperatorCfg>
     val anzahlAufgaben: Int

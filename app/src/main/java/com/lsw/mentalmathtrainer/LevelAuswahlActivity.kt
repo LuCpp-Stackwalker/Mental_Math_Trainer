@@ -2,6 +2,7 @@ package com.lsw.mentalmathtrainer
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
@@ -16,13 +17,16 @@ import kotlinx.android.synthetic.main.content_level_auswahl.*
 
 class LevelAuswahlActivity : AppCompatActivity() {
 
+    var levelCount = 0
+    lateinit var preferences : SharedPreferences
+    lateinit var modusKlasse : Class<out Any>
+
     var sternErgebnisse = ArrayList<RatingBar>()
 
     fun zähleGesammelteSterne() : Int
     {
-        val preferences = getSharedPreferences("HIGHSCORE_PREF", Context.MODE_PRIVATE)
         var counter = 0
-        for(level in 0 until aufgaben.size)
+        for(level in 0 until levelCount)
         {
             counter += preferences.getInt("sterneHighscore_" + level, 0)
         }
@@ -33,14 +37,28 @@ class LevelAuswahlActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_level_auswahl)
         setSupportActionBar(toolbar)
-        val preferences = getSharedPreferences("HIGHSCORE_PREF", Context.MODE_PRIVATE)
+        var modus = intent.getStringExtra("modus")
 
-        for(level in 0 until aufgaben.size)
+
+        if(modus == "klassisch")
         {
-            // lade gespeicherte Daten
-            var sterne = preferences.getInt("sterneHighscore_" + level, 0)
-            sterneHighscore[level] = sterne
+            levelCount = levelKlassisch.size
+            preferences = getSharedPreferences("HIGHSCORE_KLASSISCH", Context.MODE_PRIVATE)
+            modusKlasse = MainActivity::class.java
+        }
+        else if(modus == "gleichung")
+        {
+            levelCount = levelGleichung.size
+            preferences = getSharedPreferences("HIGHSCORE_GLEICHUNG", Context.MODE_PRIVATE)
+            modusKlasse = QuadratischeGleichungActivity::class.java
+        }
+        else
+        {
+            return
+        }
 
+        for(level in 0 until levelCount)
+        {
             var linearLayoutVertical = LinearLayout(this)
             linearLayoutVertical.orientation = LinearLayout.VERTICAL
             linearLayoutVertical.background = getDrawable(R.drawable.level_box)
@@ -57,7 +75,7 @@ class LevelAuswahlActivity : AppCompatActivity() {
             linearLayoutVertical.addView(button, matchParentLayout)
 
             button.setOnClickListener{
-                var intent = Intent(this, MainActivity::class.java)
+                var intent = Intent(this, modusKlasse)
                 intent.putExtra("level", level)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
                 startActivity(intent)
@@ -66,7 +84,7 @@ class LevelAuswahlActivity : AppCompatActivity() {
             var ratingBar = RatingBar(this)
             ratingBar.isEnabled = false
             ratingBar.numStars = 5
-            ratingBar.rating = sterne.toFloat()
+            ratingBar.rating = preferences.getInt("sterneHighscore_" + level, 0).toFloat()
             ratingBar.scaleX = 0.8f
             ratingBar.scaleY = 0.8f
             ratingBar.progressTintList = ColorStateList.valueOf(Color.YELLOW)
@@ -80,16 +98,18 @@ class LevelAuswahlActivity : AppCompatActivity() {
 
         }
         textViewSterneGesamt.text = zähleGesammelteSterne().toString() +  " von " +
-                (5 * aufgaben.size).toString() + " Sternen"
+                (5 * levelCount).toString() + " Sternen"
     }
 
     override fun onResume() {
         super.onResume()
-        for(level in 0 until aufgaben.size)
+        for(level in 0 until levelCount)
         {
-            sternErgebnisse[level].rating = sterneHighscore[level].toFloat()
+            sternErgebnisse[level].rating = preferences.getInt("sterneHighscore_" + level, 0).toFloat()
         }
         textViewSterneGesamt.text = zähleGesammelteSterne().toString() +  " von " +
-                (5 * aufgaben.size).toString() + " Sternen"
+                (5 * levelCount).toString() + " Sternen"
+
+
     }
 }
