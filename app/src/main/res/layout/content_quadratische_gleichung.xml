@@ -27,9 +27,10 @@
         android:ems="3"
         android:inputType="numberSigned"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/inputX2"
-        app:layout_constraintTop_toBottomOf="@+id/textViewGleichung" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewGleichung"
+        app:layout_constraintVertical_bias="0.3" />
 
     <EditText
         android:id="@+id/inputX2"
@@ -40,7 +41,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/inputX1"
-        app:layout_constraintTop_toBottomOf="@+id/textViewGleichung" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewGleichung"
+        app:layout_constraintVertical_bias="0.3" />
 
     <ProgressBar
         android:id="@+id/timeBarGleichung"
@@ -48,6 +50,17 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toTopOf="@+id/textViewGleichung"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewGelösteGleichungen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/timeBarGleichung"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

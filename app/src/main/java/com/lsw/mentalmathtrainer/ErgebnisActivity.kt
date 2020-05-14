@@ -23,10 +23,10 @@ class ErgebnisActivity : AppCompatActivity() {
         setContentView(R.layout.activity_ergebnis)
         setSupportActionBar(toolbar)
 
-        var sterne = intent.getIntExtra("sterne", 0)
+        val sterne = intent.getIntExtra("sterne", 0)
         ergebnisSterne.rating = sterne.toFloat();
         ergebnisSterne.isEnabled = false
-        var level = intent.getIntExtra("level", 0)
+        val level = intent.getIntExtra("level", 0)
         tts = TextToSpeech(applicationContext, TextToSpeech.OnInitListener { status->
             if(status != TextToSpeech.ERROR)
             {
@@ -35,9 +35,9 @@ class ErgebnisActivity : AppCompatActivity() {
             }
         })
 
-        var modus = intent.getStringExtra("modus")
-        var preferences : SharedPreferences
-        var modusKlasse : Class<out Any>
+        val modus = intent.getStringExtra("modus")
+        val preferences : SharedPreferences
+        val modusKlasse : Class<out Any>
         if(modus == "klassisch")
         {
             preferences = getSharedPreferences("HIGHSCORE_KLASSISCH", Context.MODE_PRIVATE)
@@ -60,7 +60,6 @@ class ErgebnisActivity : AppCompatActivity() {
         // Speichere Highscore
         if(sterne > preferences.getInt("sterneHighscore_" + level, 0))
         {
-            sterneHighscore[level] = sterne
             var editor = preferences.edit()
             editor.remove("sterneHighscore_" + level)
             editor.putInt("sterneHighscore_" + level, sterne)
@@ -114,13 +113,13 @@ class ErgebnisActivity : AppCompatActivity() {
         ),
         arrayOf("Immerhin ein Stern...", "Das geht aber besser", "Damit wäre ich nicht zufrieden",
             "streng dich beim nächsten Mal mehr an", "Nicht wirklich gut"),
-        arrayOf("Unteres Mittelfeld", "Du bist auf einem guten Weg zur Besserung",
+        arrayOf("Unteres Mittelfeld", "Könnte besser sein",
             "Gerade so in Ordnung", "Für deine Verhältnisse ist das in Ordnung"),
-        arrayOf("solides Mittelfeld", "Viele sind besser als du, viele sind schlechter als du",
+        arrayOf("solides Mittelfeld", "Es geht besser, aber auch schlechter",
             "etwas besser geht noch", "Ich bin fast zufrieden mit dir", "In Ordnung"),
         arrayOf("Gute Leistung", "Nächstes Mal schaffst du 5 Sterne", "Besser als die meisten",
             "Ich bin immer noch besser!", "Gut, aber nicht perfekt", "So wird das was"),
         arrayOf("Sehr gut", "Du hast meinen Rekord erreicht", "Ich bin beeindruckt",
-            "Besser geht es nicht", "Schön", "Tolle Leistung")
+            "Besser geht es nicht", "Sehr Schön", "Tolle Leistung")
     )
 }

@@ -27,6 +27,11 @@ class QuadratischeGleichungActivity : AppCompatActivity()
 
     private lateinit var timer : CountDownTimer
 
+    override fun onDestroy() {
+        super.onDestroy()
+        timer.cancel()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quadratische_gleichung)
@@ -81,17 +86,17 @@ class QuadratischeGleichungActivity : AppCompatActivity()
         var strA = ""
         if(a != 0)
         {
-            strA = (if(a != 1) a.toString() else "") + "x\u00b2"
+            strA = (if(a < 0) " - " else "") + (if(a.absoluteValue != 1) a.absoluteValue.toString() else "") + "x\u00b2"
         }
         var strB = ""
         if(b != 0)
         {
-            strB = (if(b >= 0 && a != 0)  " + " else " - ") + (if(b != 1) b.absoluteValue.toString() else "") + "x"
+            strB = (if(b < 0)  " - " else if(a != 0) " + " else "") + (if(b.absoluteValue != 1) b.absoluteValue.toString() else "") + "x"
         }
         var strC = ""
         if(c != 0)
         {
-            strC = (if(c >= 0 && (a != 0 || b != 0))  " + " else " - ") + c.absoluteValue.toString()
+            strC = (if(c < 0)  " - " else if(a != 0 || b != 0) " + " else "") + c.absoluteValue.toString()
         }
         return strA + strB + strC
     }
@@ -113,9 +118,9 @@ class QuadratischeGleichungActivity : AppCompatActivity()
         inputX2.text.clear()
 
         var cfg = levelGleichung[level].cfgs.random()
-        lösung1 = cfg.lösung1.random()
-        lösung2 = cfg.lösung2.random()
-        var faktor = cfg.faktor.random()
+        lösung1 = cfg.lösung1.random() * (if((0..1).random() == 0) -1 else 1)
+        lösung2 = cfg.lösung2.random() * (if((0..1).random() == 0) -1 else 1)
+        var faktor = cfg.faktor.random() * (if((0..5).random() == 0) -1 else 1)
 
         var a = faktor
         var b = - faktor * (lösung1 + lösung2)
@@ -176,6 +181,7 @@ class QuadratischeGleichungActivity : AppCompatActivity()
             {
                 tts.speak("richtig", TextToSpeech.QUEUE_FLUSH, null)
                 gelösteAufgaben++
+                textViewGelösteGleichungen.text = gelösteAufgaben.toString()
                 if(gelösteAufgaben == 5)
                 {
                     beendeLevel()

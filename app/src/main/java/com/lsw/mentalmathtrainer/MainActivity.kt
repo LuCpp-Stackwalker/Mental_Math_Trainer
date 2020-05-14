@@ -1,6 +1,5 @@
 package com.lsw.mentalmathtrainer
 
-import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -11,7 +10,6 @@ import android.os.Handler
 import android.speech.tts.TextToSpeech
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
-import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -80,45 +78,57 @@ class MainActivity : AppCompatActivity() {
         aufgabenCounter = 0
         this.level = level
 
+        // Setze die Länge der TimeBar
         timeBar.max = (levelKlassisch[level].guteZeit * 5)
         timeBar.progress = 0
+        // Initialisiere den Timer
         timer = object : CountDownTimer((levelKlassisch[level].guteZeit * 5).toLong(), 1) {
             override fun onTick(millisUntilFinished: Long) {
+                // Aktualisiere den Fortschritt der TimeBar
                 timeBar.progress = timeBar.max - millisUntilFinished.toInt()
+                // Passe die Farbe der TimeBar an
                 var prozent = (timeBar.progress.toFloat()) / timeBar.max
                 var color = Color.rgb((255 * min(2.2f * prozent, 1.0f)).toInt(), (255 * min(2.2f * (1 - prozent), 1.0f)).toInt(), 0);
                 timeBar.progressTintList = ColorStateList.valueOf(color)
             }
 
             override fun onFinish() {
+                // Kein Input erfolgt ->  -1 = Zeit abgelaufen
                 handleInput(-1)
             }
         }
+        // generiere die erste Aufgabe
         generiereAufgabe()
     }
 
     private fun generiereAufgabe() {
-        var op = levelKlassisch[level].cfg.random()
+        // Damit es abwechslungsreicher wird, kann es pro Level
+        // mehrere OperatorCfgs geben; Wähle eine zufällige:
+        var opcfg = levelKlassisch[level].cfg.random()
         var num1 : Int
         var num2 : Int
-        if(op.op == Operator.Geteilt)
+        if(opcfg.op == Operator.Geteilt)
         {
             // Bei geteilt sind Quotient und Divisor gegeben
             // Der Dividend wird dann daraus berechnet
-            num2 = op.range2.random()
-            lösung = op.range1.random()
+            num2 = opcfg.range2.random()
+            lösung = opcfg.range1.random()
             num1 = num2 * lösung
         }
         else
         {
-            num1 = op.range1.random()
-            num2 = op.range2.random()
-            lösung = op.op.apply(num1, num2)
+            // Wähle Zufallszahlen für die Operanden
+            num1 = opcfg.range1.random()
+            num2 = opcfg.range2.random()
+            // berechne die richtige Lösung dieser Aufgabe
+            lösung = opcfg.op.apply(num1, num2)
         }
-        aufgabe.text = num1.toString() + op.op.toString() + num2
+        // Lege den Text der Aufgabe fest: num1 operator num2
+        aufgabe.text = num1.toString() + opcfg.op.toString() + num2
         richtigerButton = (0 until antwortButtons.size).random()
         for(i in (0 until  antwortButtons.size))
         {
+            // Falls der Knopf der richtige ist, erhält er die Lösung als Text
             if(i == richtigerButton) antwortButtons[i].text = lösung.toString()
             else
             {
@@ -126,8 +136,10 @@ class MainActivity : AppCompatActivity() {
                 // Sorge dafür, das keine Antworten doppelt sind
                 do
                 {
+                    // generiere eine falsche Antwort
                     falscheAntwort = generiereFalscheAntwort().toString()
                     var bereitsVorhanden = false
+                    // Überprüfe, ob die Antwort bereits vorhanden ist
                     for(j in 0 until i)
                     {
                         if(falscheAntwort == antwortButtons[j].text)
@@ -135,11 +147,12 @@ class MainActivity : AppCompatActivity() {
                             bereitsVorhanden = true
                         }
                     }
+                    // wenn ja, wiederhole den Vorgang
                 } while (bereitsVorhanden)
                 antwortButtons[i].text = falscheAntwort
             }
         }
-
+        // erhöhe den Aufgabencounter (Anzahl der Aufgaben) und starte den Timer neu
         aufgabenCounter++
         timeBar.progress = 0
         timer.start()
@@ -149,13 +162,15 @@ class MainActivity : AppCompatActivity() {
     {
         var maxAbweichung = max(min(lösung / 2, 50), 2)
         var variante = (0 .. 3).random()
-        // Falls max Abweichung < 10 sind Varianten 0 und 1 sinnlos.
+        // Falls max Abweichung < 10 funktionieren Varianten 1 und 2 nicht
         // Setze dann das zweite Bit auf 1 -> Zahl entweder 2 oder 3
         if(maxAbweichung < 10) variante = variante or 2
         when(variante)
         {
+            // vielfaches von 10 (kleiner als maxAbweichung) addieren / subtrahieren
             0 -> return lösung + 10 * (1 .. maxAbweichung / 10).random()
             1 -> return lösung - 10 * (1 .. maxAbweichung / 10).random()
+            // beliebige Zahl (kleiner als maxAbweichung) addieren / subtrahieren
             2 -> return lösung + (1 .. maxAbweichung).random()
             3 -> return lösung - (1 .. maxAbweichung).random()
         }
@@ -201,6 +216,7 @@ class MainActivity : AppCompatActivity() {
         runnable = Runnable {
             if(!tts.isSpeaking())
             {
+                // Setze die Knöpfe zurück
                 for(b in antwortButtons)
                 {
                     (b.background as GradientDrawable).setColor(Color.BLUE)
@@ -212,7 +228,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 else
                 {
-                    var intent = Intent(applicationContext, ErgebnisActivity::class.java)//.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                    // Gehe zum Ergebnis
+                    var intent = Intent(applicationContext, ErgebnisActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
                     intent.putExtra("modus", "klassisch")
                     intent.putExtra("punkte", punkte)
@@ -265,8 +282,10 @@ class MainActivity : AppCompatActivity() {
 
 enum class Operator
 {
-    Plus, Minus, Mal, Geteilt, Modulo, Hoch;
+    // Konstanten des Enums
+    Plus, Minus, Mal, Geteilt;
 
+    // Funktionen des Enums
     fun apply(a : Int, b : Int) : Int
     {
         when(this)
@@ -275,8 +294,6 @@ enum class Operator
             Minus -> return a-b
             Mal -> return a*b
             Geteilt -> return a/b
-            Modulo -> return a%b
-            Hoch -> return Math.pow(a.toDouble(), b.toDouble()).toInt()
         }
     }
 
@@ -288,8 +305,6 @@ enum class Operator
             Minus -> return "-"
             Mal -> return "\u22C5"
             Geteilt -> return "\u00F7"
-            Modulo -> return "mod"
-            Hoch -> return "^"
         }
     }
 }
